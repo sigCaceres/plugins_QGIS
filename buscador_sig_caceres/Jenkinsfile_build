@@ -1,0 +1,28 @@
+node {
+    stage ("Set params") {
+        script {
+            env.BUILD_BRANCH = "${env.BRANCH_NAME}"
+            env.BUILD_GIT = scm.userRemoteConfigs[0].url
+        }        
+    }
+    stage ("Show params") {
+        script {                
+            sh 'echo BUILD_BRANCH: ${BUILD_BRANCH}'
+            sh 'echo BUILD_GIT: ${BUILD_GIT}'
+        }        
+    }
+    stage ("Checkout pipelines") {
+        script {
+            if (env.BRANCH_NAME == 'master') {
+                BRANCH="master"
+            } else if (env.BRANCH_NAME == 'pre'){
+                BRANCH="pre"
+            } else {           
+                // cualquier rama que no sea pre y master se enlaza con develop             
+                BRANCH="develop"
+            }
+        }
+        git url: "https://gitlabpre.grupotecopy.es/sistemas/ci/jenkins-pipelines.git", branch: "${BRANCH}", credentialsId: "jenkins_gitlab"        
+    }    
+    load ("qgis-plugin/build/Jenkinsfile")
+}
